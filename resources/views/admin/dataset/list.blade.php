@@ -6,11 +6,38 @@
 <div class="row">
     <div class="col-md-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0"><i class="fas fa-wine-bottle me-2"></i>Wine Database</h4>
-                <a href="{{ route('admin.dataset.create') }}" class="btn btn-sm btn-primary">
-                    <i class="fas fa-plus me-1"></i> Add New Wine
-                </a>
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-wine-bottle me-2 text-gold"></i>Wine Dataset</h4>
+                <div class="d-flex">
+                    <!-- Import Dropdown -->
+                    <div class="dropdown me-2">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="importDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-file-import me-1"></i> Import Data
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="importDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{{ route('admin.dataset.import.form') }}">
+                                    <i class="fas fa-file-csv me-2"></i> Import CSV
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ route('admin.dataset.import.form') }}?type=additional">
+                                    <i class="fas fa-star me-2"></i> Import Additional Wines
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url('/artisan/command/seed:additional-wines') }}" 
+                                   onclick="return confirm('Are you sure you want to run the additional wines seeder?');">
+                                    <i class="fas fa-seedling me-2"></i> Run Additional Wines Seeder
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <a href="{{ route('admin.dataset.create') }}" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i> Add New Wine
+                    </a>
+                </div>
             </div>
             <div class="card-body">
                 <!-- Search and Filter -->
@@ -78,7 +105,7 @@
                                     <td>{{ $wine->name }}</td>
                                     <td>{{ $wine->type ?? 'N/A' }}</td>
                                     <td>{{ $wine->vintage ?? 'N/A' }}</td>
-                                    <td>${{ number_format($wine->price, 2) }}</td>
+                                    <td>₱{{ number_format($wine->price, 2) }}</td>
                                     <td>{{ $wine->region ?? 'N/A' }}</td>
                                     <td>
                                         <a href="{{ route('admin.dataset.edit', $wine->id) }}" class="btn btn-sm btn-outline-primary me-1">

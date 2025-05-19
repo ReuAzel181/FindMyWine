@@ -34,8 +34,8 @@ class WineRecommendationService
                 $query->where('price', '<=', $criteria['price_max']);
             }
             
-            // Get 3-5 random wines
-            return $query->inRandomOrder()->take(rand(3, 5))->get();
+            // Get 6 random wines
+            return $query->inRandomOrder()->take(6)->get();
         }
         
         // Apply criteria filters
@@ -56,14 +56,14 @@ class WineRecommendationService
             if ($recommendations->count() < 3) {
                 $additionalWines = $query->whereNotIn('id', $recommendations->pluck('id'))
                     ->inRandomOrder()
-                    ->take(5 - $recommendations->count())
+                    ->take(6 - $recommendations->count())
                     ->get();
                 
                 $recommendations = $recommendations->merge($additionalWines);
             }
         } else {
-            // No ratings, just get 3-5 wines based on criteria
-            $recommendations = $query->inRandomOrder()->take(rand(3, 5))->get();
+            // No ratings, just get 6 wines based on criteria
+            $recommendations = $query->inRandomOrder()->take(6)->get();
         }
         
         // Save these recommendations for the user
@@ -98,8 +98,18 @@ class WineRecommendationService
         // Apply flavor profile filter (using LIKE for partial matching)
         if (!empty($criteria['flavors'])) {
             $query->where(function ($q) use ($criteria) {
-                foreach ($criteria['flavors'] as $flavor) {
-                    $q->orWhere('flavor_profile', 'LIKE', "%{$flavor}%");
+                // Convert string to array if it's not already an array
+                $flavors = is_array($criteria['flavors']) ? $criteria['flavors'] : explode(',', $criteria['flavors']);
+                
+                foreach ($flavors as $flavor) {
+                    $flavor = trim($flavor);
+                    if (!empty($flavor)) {
+                        $q->orWhere('flavor_profile', 'LIKE', "%{$flavor}%");
+                        // Also search for similar terms
+                        if ($flavor === 'oaky') {
+                            $q->orWhere('flavor_profile', 'LIKE', '%oak%');
+                        }
+                    }
                 }
             });
         }
@@ -107,8 +117,18 @@ class WineRecommendationService
         // Apply food pairing filter (using LIKE for partial matching)
         if (!empty($criteria['food_pairings'])) {
             $query->where(function ($q) use ($criteria) {
-                foreach ($criteria['food_pairings'] as $pairing) {
-                    $q->orWhere('food_pairings', 'LIKE', "%{$pairing}%");
+                // Convert string to array if it's not already an array
+                $pairings = is_array($criteria['food_pairings']) ? $criteria['food_pairings'] : explode(',', $criteria['food_pairings']);
+                
+                foreach ($pairings as $pairing) {
+                    $pairing = trim($pairing);
+                    if (!empty($pairing)) {
+                        $q->orWhere('food_pairings', 'LIKE', "%{$pairing}%");
+                        // Add common variations
+                        if ($pairing === 'fish') {
+                            $q->orWhere('food_pairings', 'LIKE', '%seafood%');
+                        }
+                    }
                 }
             });
         }

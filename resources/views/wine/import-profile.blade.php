@@ -42,7 +42,7 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-upload me-2"></i>Import Profile
                         </button>
-                        <a href="{{ route('wine.index') }}" class="btn btn-outline-secondary ms-2">
+                        <a href="{{ route('wine.home') }}" class="btn btn-outline-secondary ms-2">
                             <i class="fas fa-arrow-left me-2"></i>Back to Home
                         </a>
                     </div>

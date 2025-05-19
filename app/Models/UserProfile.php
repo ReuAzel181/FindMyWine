@@ -27,6 +27,7 @@ class UserProfile extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'user_id',
         'username',
         'preferred_flavors',
         'preferred_food_pairings',
@@ -49,13 +50,23 @@ class UserProfile extends Model
     ];
 
     /**
+     * Get the user that owns the profile.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
      * Get the past recommendations for the user.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function pastRecommendations()
     {
-        return $this->hasMany(UserRecommendation::class)->latest()->take(5);
+        return $this->hasMany(UserRecommendation::class)->latest()->take(6);
     }
 
     /**
