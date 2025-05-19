@@ -1,82 +1,112 @@
 @extends('layouts.app')
 
-@section('title', 'Admin - Import Wine Dataset')
+@section('title', isset($title) ? $title : 'Import Wine Dataset')
 
 @section('content')
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0"><i class="fas fa-file-import me-2"></i>Import Wine Dataset</h4>
-            </div>
-            <div class="card-body">
-                <p class="lead">
-                    Import wines from a CSV file into the database.
-                </p>
-                
-                <form action="{{ route('admin.dataset.import') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0"><i class="fas fa-file-import me-2 text-gold"></i>{{ isset($title) ? $title : 'Import Wine Dataset' }}</h4>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4">
+                        {{ isset($description) ? $description : 'Upload a CSV file containing wine data. This will replace all existing wines.' }}
+                    </p>
                     
-                    <div class="mb-4">
-                        <label for="wine_file" class="form-label">Select CSV File</label>
-                        <input type="file" class="form-control @error('wine_file') is-invalid @enderror" 
-                            id="wine_file" name="wine_file" accept=".csv,.txt" required>
-                        
-                        @error('wine_file')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                        
-                        <div class="form-text">
-                            The CSV file should contain headers and wine data in comma-separated format.
+                    @if(session('success'))
+                        <div class="alert alert-success">
+                            {{ session('success') }}
                         </div>
-                    </div>
+                    @endif
                     
-                    <div class="mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="clear_existing" name="clear_existing" value="1">
+                    @if(session('error'))
+                        <div class="alert alert-danger">
+                            {{ session('error') }}
+                        </div>
+                    @endif
+                    
+                    <form action="{{ route('admin.dataset.import') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        
+                        <input type="hidden" name="import_type" value="{{ $type ?? 'standard' }}">
+                        
+                        <div class="mb-4">
+                            <label for="csv_file" class="form-label">
+                                <i class="fas fa-file-csv me-1 text-gold"></i> CSV File
+                            </label>
+                            <input type="file" class="form-control @error('csv_file') is-invalid @enderror" id="csv_file" name="csv_file">
+                            @error('csv_file')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                            
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Accepted format: CSV with headers. 
+                                @if(($type ?? 'standard') === 'additional')
+                                    Will add wines to the existing database.
+                                @else
+                                    Will replace all wines in the database.
+                                @endif
+                            </div>
+                        </div>
+                        
+                        @if(($type ?? 'standard') === 'standard')
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="clear_existing" name="clear_existing" value="1" checked>
                             <label class="form-check-label" for="clear_existing">
                                 Clear existing wines before import
                             </label>
-                        </div>
-                        <div class="form-text text-danger">
-                            Warning: This will delete all existing wines from the database.
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <div class="card">
-                            <div class="card-header bg-light">
-                                <h5 class="mb-0">CSV Format Guidelines</h5>
-                            </div>
-                            <div class="card-body">
-                                <p>Your CSV file should include the following columns (header names are flexible):</p>
-                                <ul>
-                                    <li><strong>name</strong> - The wine name (required)</li>
-                                    <li><strong>type</strong> - Wine type (e.g., Red, White, Rosé, Sparkling)</li>
-                                    <li><strong>vintage</strong> - Year of production</li>
-                                    <li><strong>price</strong> - Price in numerical format</li>
-                                    <li><strong>grape_variety</strong> - Grape variety</li>
-                                    <li><strong>region</strong> - Wine region</li>
-                                    <li><strong>country</strong> - Country of origin</li>
-                                    <li><strong>flavor_profile</strong> - Descriptive flavor notes</li>
-                                    <li><strong>food_pairings</strong> - Recommended food pairings</li>
-                                    <li><strong>tasting_notes</strong> - Detailed tasting notes</li>
-                                    <li><strong>alcohol_content</strong> - Alcohol percentage</li>
-                                    <li><strong>image_path</strong> - Path to image (optional)</li>
-                                </ul>
+                            <div class="form-text text-danger">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Warning: This will remove all existing wines and ratings!
                             </div>
                         </div>
+                        @endif
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ route('admin.dataset.list') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back to List
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-file-import me-1"></i> Import Wines
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-gold"></i>CSV Format Requirements</h5>
+                </div>
+                <div class="card-body">
+                    <p>Your CSV file should include the following columns:</p>
+                    <ul>
+                        <li><strong>name</strong> - Wine name</li>
+                        <li><strong>type</strong> - Wine type (Red, White, Rosé, Sparkling, Dessert)</li>
+                        <li><strong>variety</strong> - Grape variety</li>
+                        <li><strong>origin</strong> - Country or region of origin</li>
+                        <li><strong>price</strong> - Price in ₱ (Philippine Peso)</li>
+                        <li><strong>flavor_profile</strong> - Flavor descriptions (comma separated)</li>
+                        <li><strong>food_pairings</strong> - Food pairings (comma separated)</li>
+                        <li><strong>description</strong> - Wine description</li>
+                        <li><strong>image_url</strong> - URL to wine image (optional)</li>
+                        <li><strong>source_url</strong> - URL to source information (optional)</li>
+                    </ul>
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Tip:</strong> You can download the current dataset as a CSV file to see the expected format.
+                        <div class="mt-2">
+                            <a href="{{ route('admin.dataset.export') }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-download me-1"></i> Download Current Dataset
+                            </a>
+                        </div>
                     </div>
-                    
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-upload me-2"></i>Upload and Import
-                        </button>
-                        <a href="{{ route('admin.dataset.index') }}" class="btn btn-outline-secondary ms-2">
-                            <i class="fas fa-arrow-left me-2"></i>Back to Dataset Management
-                        </a>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>

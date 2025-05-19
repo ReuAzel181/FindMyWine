@@ -13,56 +13,53 @@
                 </h4>
             </div>
             <div class="card-body">
-                <p class="lead">
-                    Based on your preferences, we recommend the following wines:
+                <p class="lead text-center mb-4">
+                    Based on your preferences, we've curated these exceptional wines just for you.
                 </p>
                 
                 <div class="mb-4">
-                    <h5>Your Search Criteria:</h5>
-                    <ul class="list-group list-group-flush">
-                        @if(!empty($criteria['types']))
-                            <li class="list-group-item">
-                                <strong>Wine Types:</strong> {{ implode(', ', (array)$criteria['types']) }}
-                            </li>
-                        @endif
-                        
-                        @if(!empty($criteria['flavors']))
-                            <li class="list-group-item">
-                                <strong>Flavors:</strong> {{ is_array($criteria['flavors']) ? implode(', ', $criteria['flavors']) : $criteria['flavors'] }}
-                            </li>
-                        @endif
-                        
-                        @if(!empty($criteria['food_pairings']))
-                            <li class="list-group-item">
-                                <strong>Food Pairings:</strong> {{ is_array($criteria['food_pairings']) ? implode(', ', $criteria['food_pairings']) : $criteria['food_pairings'] }}
-                            </li>
-                        @endif
-                        
-                        @if(!empty($criteria['price_min']) || !empty($criteria['price_max']))
-                            <li class="list-group-item">
-                                <strong>Price Range:</strong> 
-                                @if(!empty($criteria['price_min']) && !empty($criteria['price_max']))
-                                    ${{ number_format($criteria['price_min'], 2) }} - ${{ number_format($criteria['price_max'], 2) }}
-                                @elseif(!empty($criteria['price_min']))
-                                    ${{ number_format($criteria['price_min'], 2) }} and up
-                                @else
-                                    Up to ${{ number_format($criteria['price_max'], 2) }}
-                                @endif
-                            </li>
-                        @endif
-                        
-                        @if(!empty($criteria['regions']))
-                            <li class="list-group-item">
-                                <strong>Regions:</strong> {{ implode(', ', (array)$criteria['regions']) }}
-                            </li>
-                        @endif
-                        
-                        @if($randomMode)
-                            <li class="list-group-item">
-                                <strong>Mode:</strong> Random Selection
-                            </li>
-                        @endif
-                    </ul>
+                    <div class="wine-attributes">
+                        <h5 class="mb-3">Your Search Criteria:</h5>
+                        <dl class="row mb-0">
+                            @if(!empty($criteria['types']))
+                                <dt class="col-sm-3">Wine Types:</dt>
+                                <dd class="col-sm-9">{{ implode(', ', (array)$criteria['types']) }}</dd>
+                            @endif
+                            
+                            @if(!empty($criteria['flavors']))
+                                <dt class="col-sm-3">Flavors:</dt>
+                                <dd class="col-sm-9">{{ is_array($criteria['flavors']) ? implode(', ', $criteria['flavors']) : $criteria['flavors'] }}</dd>
+                            @endif
+                            
+                            @if(!empty($criteria['food_pairings']))
+                                <dt class="col-sm-3">Food Pairings:</dt>
+                                <dd class="col-sm-9">{{ is_array($criteria['food_pairings']) ? implode(', ', $criteria['food_pairings']) : $criteria['food_pairings'] }}</dd>
+                            @endif
+                            
+                            @if(!empty($criteria['price_min']) || !empty($criteria['price_max']))
+                                <dt class="col-sm-3">Price Range:</dt>
+                                <dd class="col-sm-9">
+                                    @if(!empty($criteria['price_min']) && !empty($criteria['price_max']))
+                                        ₱{{ number_format($criteria['price_min'], 2) }} - ₱{{ number_format($criteria['price_max'], 2) }}
+                                    @elseif(!empty($criteria['price_min']))
+                                        ₱{{ number_format($criteria['price_min'], 2) }} and up
+                                    @else
+                                        Up to ₱{{ number_format($criteria['price_max'], 2) }}
+                                    @endif
+                                </dd>
+                            @endif
+                            
+                            @if(!empty($criteria['regions']))
+                                <dt class="col-sm-3">Regions:</dt>
+                                <dd class="col-sm-9">{{ implode(', ', (array)$criteria['regions']) }}</dd>
+                            @endif
+                            
+                            @if($randomMode)
+                                <dt class="col-sm-3">Mode:</dt>
+                                <dd class="col-sm-9">Random Selection</dd>
+                            @endif
+                        </dl>
+                    </div>
                 </div>
                 
                 <div class="row">
@@ -71,37 +68,49 @@
                             <div class="card h-100 wine-card">
                                 <div class="card-body">
                                     <h5 class="card-title">{{ $wine->name }}</h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">
-                                        {{ $wine->type ?? 'N/A' }} | {{ $wine->vintage ?? 'N/A' }}
+                                    <h6 class="card-subtitle mb-3">
+                                        <span class="badge bg-primary me-2">{{ $wine->type ?? 'N/A' }}</span>
+                                        <span class="badge bg-secondary">{{ $wine->vintage ?? 'N/A' }}</span>
                                     </h6>
                                     
-                                    <p class="card-text">
-                                        <strong>Price:</strong> ${{ number_format($wine->price, 2) }}<br>
-                                        <strong>Region:</strong> {{ $wine->region ?? 'N/A' }}, {{ $wine->country ?? 'N/A' }}<br>
-                                        <strong>Grape Variety:</strong> {{ $wine->grape_variety ?? 'N/A' }}
-                                    </p>
+                                    <div class="wine-attributes mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <strong class="text-wine-burgundy">Price:</strong>
+                                            <span class="badge bg-success">₱{{ number_format($wine->price, 2) }}</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong class="text-wine-burgundy">Region:</strong>
+                                            {{ $wine->region ?? 'N/A' }}, {{ $wine->country ?? 'N/A' }}
+                                        </div>
+                                        <div>
+                                            <strong class="text-wine-burgundy">Grape:</strong>
+                                            {{ $wine->grape_variety ?? 'N/A' }}
+                                        </div>
+                                    </div>
                                     
                                     <div class="mb-3">
-                                        <strong>Tasting Notes:</strong>
+                                        <h6 class="text-wine-burgundy mb-2">Tasting Notes:</h6>
                                         <p class="small">{{ $wine->tasting_notes ?? 'No tasting notes available.' }}</p>
                                     </div>
                                     
                                     <div class="mb-3">
-                                        <strong>Food Pairings:</strong>
+                                        <h6 class="text-wine-burgundy mb-2">Food Pairings:</h6>
                                         <p class="small">{{ $wine->food_pairings ?? 'No food pairing information available.' }}</p>
                                     </div>
                                     
                                     <!-- Rating Section -->
                                     <div class="mt-3 pt-3 border-top">
-                                        <h6>Rate this wine:</h6>
+                                        <h6 class="mb-2">Rate this wine:</h6>
                                         <div class="star-rating mb-2" data-wine-id="{{ $wine->id }}">
                                             @for($i = 1; $i <= 5; $i++)
-                                                <span class="star" data-rating="{{ $i }}">★</span>
+                                                <span class="star" data-rating="{{ $i }}" title="{{ $i }} star{{ $i > 1 ? 's' : '' }}">★</span>
                                             @endfor
                                         </div>
-                                        <textarea class="form-control form-control-sm mb-2 rating-comment" placeholder="Add a comment (optional)"></textarea>
+                                        <textarea class="form-control form-control-sm mb-2 rating-comment" 
+                                            placeholder="Share your thoughts about this wine (optional)"
+                                            rows="2"></textarea>
                                         <button class="btn btn-sm btn-outline-primary save-rating" data-wine-id="{{ $wine->id }}">
-                                            Save Rating
+                                            <i class="fas fa-save me-1"></i> Save Rating
                                         </button>
                                         <div class="rating-status small mt-1"></div>
                                     </div>
@@ -111,6 +120,7 @@
                     @empty
                         <div class="col-12">
                             <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
                                 No wines matched your criteria. Please try adjusting your preferences.
                             </div>
                         </div>
@@ -118,12 +128,13 @@
                 </div>
                 
                 <div class="text-center mt-4">
-                    <a href="{{ route('wine.index') }}" class="btn btn-primary">
+                    <a href="{{ route('wine.home') }}" class="btn btn-primary btn-lg">
                         <i class="fas fa-search me-1"></i> Try Another Search
                     </a>
                     
                     @if($userProfile)
-                        <a href="{{ route('wine.profile.export', ['username' => $userProfile->username]) }}" class="btn btn-outline-primary ms-2">
+                        <a href="{{ route('wine.profile.export') }}" 
+                            class="btn btn-outline-primary btn-lg ms-2">
                             <i class="fas fa-download me-1"></i> Export Your Profile
                         </a>
                     @endif
@@ -136,80 +147,92 @@
 
 @section('scripts')
 <script>
-    $(document).ready(function() {
-        // Username from form
-        const username = "{{ $userProfile->username }}";
+$(document).ready(function() {
+    // Handle star rating selection
+    $('.star').on('mouseover', function() {
+        const rating = $(this).data('rating');
+        const stars = $(this).parent().find('.star');
         
-        // Handle star rating selection
-        $('.star').on('mouseover', function() {
-            const rating = $(this).data('rating');
-            const stars = $(this).parent().find('.star');
-            
-            stars.removeClass('filled');
-            for (let i = 0; i < rating; i++) {
-                $(stars[i]).addClass('filled');
-            }
-        });
+        stars.removeClass('filled');
+        for (let i = 0; i < rating; i++) {
+            $(stars[i]).addClass('filled');
+        }
+    });
+    
+    $('.star').on('mouseout', function() {
+        const starsContainer = $(this).parent();
+        const selectedRating = starsContainer.attr('data-selected-rating') || 0;
+        const stars = starsContainer.find('.star');
         
-        $('.star').on('mouseout', function() {
-            const starsContainer = $(this).parent();
-            const selectedRating = starsContainer.attr('data-selected-rating') || 0;
-            const stars = starsContainer.find('.star');
-            
-            stars.removeClass('filled');
-            for (let i = 0; i < selectedRating; i++) {
-                $(stars[i]).addClass('filled');
-            }
-        });
+        stars.removeClass('filled');
+        for (let i = 0; i < selectedRating; i++) {
+            $(stars[i]).addClass('filled');
+        }
+    });
+    
+    $('.star').on('click', function() {
+        const rating = $(this).data('rating');
+        const starsContainer = $(this).parent();
         
-        $('.star').on('click', function() {
-            const rating = $(this).data('rating');
-            const starsContainer = $(this).parent();
-            
-            starsContainer.attr('data-selected-rating', rating);
-            
-            // Trigger mouseout to update display
-            $(this).mouseout();
-        });
+        starsContainer.attr('data-selected-rating', rating);
         
-        // Handle rating submission
-        $('.save-rating').on('click', function() {
-            const wineId = $(this).data('wine-id');
-            const starsContainer = $(`.star-rating[data-wine-id="${wineId}"]`);
-            const rating = starsContainer.attr('data-selected-rating');
-            const comment = $(this).closest('.card-body').find('.rating-comment').val();
-            const statusElement = $(this).closest('.card-body').find('.rating-status');
-            
-            if (!rating) {
-                statusElement.html('<span class="text-danger">Please select a rating.</span>');
-                return;
-            }
-            
-            // Show loading status
-            statusElement.html('<span class="text-info">Saving your rating...</span>');
-            
-            // Submit rating via AJAX
-            $.ajax({
-                url: "{{ route('wine.rate') }}",
-                method: 'POST',
-                data: {
-                    _token: "{{ csrf_token() }}",
-                    username: username,
-                    wine_id: wineId,
-                    rating: rating,
-                    comment: comment
-                },
-                success: function(response) {
-                    statusElement.html('<span class="text-success">Rating saved!</span>');
-                    setTimeout(() => {
-                        statusElement.html('');
-                    }, 3000);
-                },
-                error: function(xhr) {
-                    statusElement.html('<span class="text-danger">Error saving rating. Please try again.</span>');
+        // Trigger mouseout to update display
+        $(this).mouseout();
+    });
+    
+    // Handle rating submission
+    $('.save-rating').on('click', function() {
+        const button = $(this);
+        const wineId = button.data('wine-id');
+        const starsContainer = $(`.star-rating[data-wine-id="${wineId}"]`);
+        const rating = starsContainer.attr('data-selected-rating');
+        const comment = button.closest('.card-body').find('.rating-comment').val();
+        const statusElement = button.closest('.card-body').find('.rating-status');
+        
+        if (!rating) {
+            statusElement.html('<span class="text-danger">Please select a rating.</span>');
+            return;
+        }
+        
+        // Show loading status
+        statusElement.html('<span class="text-info">Saving your rating...</span>');
+        
+        // CSRF token
+        const token = $('meta[name="csrf-token"]').attr('content');
+        
+        // Send rating to server
+        $.ajax({
+            url: '{{ route('wine.rate') }}',
+            type: 'POST',
+            data: {
+                _token: token,
+                wine_id: wineId,
+                rating: rating,
+                comment: comment
+            },
+            success: function(response) {
+                statusElement.html('<span class="text-success">Rating saved successfully!</span>');
+                // Redirect to home page after short delay to show success message
+                setTimeout(() => {
+                    window.location.href = response.redirect || '{{ route('home') }}';
+                }, 1500);
+            },
+            error: function(xhr) {
+                let errorMessage = 'Failed to save rating. Please try again.';
+                
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                    
+                    // If not logged in, provide login link
+                    if (errorMessage.includes('Unauthenticated') || errorMessage.includes('log in')) {
+                        errorMessage = 'Please <a href="{{ route('login') }}">log in</a> to save your rating.';
+                    }
                 }
-            });
+                
+                statusElement.html(`<span class="text-danger">${errorMessage}</span>`);
+            }
         });
     });
+});
 </script>
 @endsection 

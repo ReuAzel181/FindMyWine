@@ -10,6 +10,7 @@ use App\Services\WineDatasetService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class WineRecommendationController extends Controller
 {
@@ -25,6 +26,9 @@ class WineRecommendationController extends Controller
         $this->userProfileService = $userProfileService;
         $this->wineRecommendationService = $wineRecommendationService;
         $this->wineDatasetService = $wineDatasetService;
+        
+        // Require authentication for all routes
+        $this->middleware('auth');
     }
     
     /**
@@ -46,7 +50,6 @@ class WineRecommendationController extends Controller
     {
         // Validate request
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:255',
             'price_min' => 'nullable|numeric|min:0',
             'price_max' => 'nullable|numeric|gt:price_min',
             'random_mode' => 'nullable|boolean',
@@ -58,22 +61,29 @@ class WineRecommendationController extends Controller
                 ->withInput();
         }
         
-        // Get or create user profile
-        $userProfile = $this->userProfileService->loadUserProfile($request->username);
+        // Process flavors and food pairings (could be strings with commas)
+        $flavors = $request->flavors;
+        $foodPairings = $request->food_pairings;
         
-        if (!$userProfile) {
-            $userProfile = $this->userProfileService->saveUserProfile($request->username, [
-                'flavors' => $request->flavors ?? [],
-                'food_pairings' => $request->food_pairings ?? [],
-                'price_min' => $request->price_min,
-                'price_max' => $request->price_max,
-                'types' => $request->types ?? [],
-                'regions' => $request->regions ?? [],
-            ]);
-        }
+        // Get or create user profile using authenticated user
+        $user = Auth::user();
+        $userProfile = $this->userProfileService->loadUserProfile(null, $user);
         
-        // Ensure at least one preference is set
-        if (empty($request->flavors) && empty($request->food_pairings) && 
+        // Save preferences to profile
+        $userProfile = $this->userProfileService->saveUserProfile($user->name, [
+            'flavors' => $flavors ?? [],
+            'food_pairings' => $foodPairings ?? [],
+            'price_min' => $request->price_min,
+            'price_max' => $request->price_max,
+            'types' => $request->types ?? [],
+            'regions' => $request->regions ?? [],
+        ], $user);
+        
+        // Check if random mode is enabled
+        $randomMode = $request->has('random_mode') && $request->random_mode;
+        
+        // Ensure at least one preference is set (unless in random mode)
+        if (!$randomMode && empty($flavors) && empty($foodPairings) && 
             empty($request->types) && empty($request->price_min) && empty($request->price_max)) {
             return redirect()->back()
                 ->with('error', 'Please enter at least one preference (e.g., flavor, food pairing, or price range).')
@@ -82,15 +92,14 @@ class WineRecommendationController extends Controller
         
         // Get recommendations
         $criteria = [
-            'flavors' => $request->flavors ?? [],
-            'food_pairings' => $request->food_pairings ?? [],
+            'flavors' => $flavors ?? [],
+            'food_pairings' => $foodPairings ?? [],
             'price_min' => $request->price_min,
             'price_max' => $request->price_max,
             'types' => $request->types ?? [],
             'regions' => $request->regions ?? [],
         ];
         
-        $randomMode = $request->has('random_mode') && $request->random_mode;
         $recommendations = $this->wineRecommendationService->getRecommendations($userProfile, $criteria, $randomMode);
         
         // Get past recommendations if available
@@ -111,7 +120,6 @@ class WineRecommendationController extends Controller
     public function rateWine(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:255',
             'wine_id' => 'required|exists:wines,id',
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:1000',
@@ -121,10 +129,23 @@ class WineRecommendationController extends Controller
             return response()->json(['error' => $validator->errors()->first()], 400);
         }
         
-        $userProfile = $this->userProfileService->loadUserProfile($request->username);
+        $user = Auth::user();
+        
+        // Log user information for debugging
+        \Log::info('Rating wine - User info:', [
+            'user_id' => $user->id ?? 'No user ID',
+            'user_name' => $user->name ?? 'No name',
+            'wine_id' => $request->wine_id,
+            'rating' => $request->rating
+        ]);
+        
+        // Ensure user profile exists
+        $userProfile = $this->userProfileService->loadUserProfile(null, $user);
         
         if (!$userProfile) {
-            return response()->json(['error' => 'User profile not found'], 404);
+            // Create profile if it doesn't exist
+            $userProfile = $this->userProfileService->saveUserProfile($user->name, [], $user);
+            \Log::info('Created new user profile', ['profile_id' => $userProfile->id]);
         }
         
         $rating = $this->userProfileService->rateWine(
@@ -134,7 +155,19 @@ class WineRecommendationController extends Controller
             $request->comment
         );
         
-        return response()->json(['success' => true, 'rating' => $rating]);
+        // Log successful rating
+        \Log::info('Wine rated successfully', [
+            'rating_id' => $rating->id,
+            'profile_id' => $userProfile->id,
+            'wine_id' => $request->wine_id,
+            'rating' => $request->rating
+        ]);
+        
+        return response()->json([
+            'success' => true, 
+            'rating' => $rating,
+            'redirect' => route('wine.home')
+        ]);
     }
     
     /**
@@ -142,15 +175,8 @@ class WineRecommendationController extends Controller
      */
     public function exportProfile(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:255',
-        ]);
-        
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator);
-        }
-        
-        $userProfile = $this->userProfileService->loadUserProfile($request->username);
+        $user = Auth::user();
+        $userProfile = $this->userProfileService->loadUserProfile(null, $user);
         
         if (!$userProfile) {
             return redirect()->back()->with('error', 'User profile not found');
@@ -185,14 +211,14 @@ class WineRecommendationController extends Controller
         $file = $request->file('profile_file');
         $path = $file->store('imports');
         
-        $userProfile = $this->userProfileService->importUserProfile($path);
+        $user = Auth::user();
+        $userProfile = $this->userProfileService->importUserProfile($path, $user);
         
         if (!$userProfile) {
             return redirect()->back()->with('error', 'Failed to import user profile');
         }
         
-        return redirect()->route('wine.index')
-            ->with('success', 'User profile imported successfully!')
-            ->with('username', $userProfile->username);
+        return redirect()->route('wine.home')
+            ->with('success', 'User profile imported successfully!');
     }
 } 

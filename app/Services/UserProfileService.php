@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Models\UserProfile;
 use App\Models\WineRating;
 use Illuminate\Support\Facades\Storage;
@@ -13,11 +14,21 @@ class UserProfileService
      *
      * @param string $username
      * @param array $preferences
+     * @param User|null $user
      * @return UserProfile
      */
-    public function saveUserProfile(string $username, array $preferences): UserProfile
+    public function saveUserProfile(string $username, array $preferences, ?User $user = null): UserProfile
     {
-        $profile = UserProfile::firstOrNew(['username' => $username]);
+        $profile = $user ? $user->profile : null;
+        
+        if (!$profile) {
+            $profile = UserProfile::firstOrNew(['username' => $username]);
+            
+            // Link to user if provided
+            if ($user) {
+                $profile->user_id = $user->id;
+            }
+        }
         
         // Update preferences
         $profile->fill([
@@ -35,14 +46,26 @@ class UserProfileService
     }
     
     /**
-     * Load a user profile by username
+     * Load a user profile by username or user
      *
-     * @param string $username
+     * @param string|null $username
+     * @param User|null $user
      * @return UserProfile|null
      */
-    public function loadUserProfile(string $username): ?UserProfile
+    public function loadUserProfile(?string $username = null, ?User $user = null): ?UserProfile
     {
-        return UserProfile::where('username', $username)->first();
+        if ($user) {
+            $profile = $user->profile;
+            
+            // Create profile if it doesn't exist
+            if (!$profile && $user->name) {
+                $profile = $this->saveUserProfile($user->name, [], $user);
+            }
+            
+            return $profile;
+        }
+        
+        return $username ? UserProfile::where('username', $username)->first() : null;
     }
     
     /**
@@ -105,9 +128,10 @@ class UserProfileService
      * Import user profile from file
      *
      * @param string $filePath
+     * @param User|null $user
      * @return UserProfile|null
      */
-    public function importUserProfile(string $filePath): ?UserProfile
+    public function importUserProfile(string $filePath, ?User $user = null): ?UserProfile
     {
         if (!Storage::exists($filePath)) {
             return null;
@@ -127,7 +151,7 @@ class UserProfileService
             'price_max' => $profileData['preferred_price_max'],
             'types' => $profileData['preferred_types'],
             'regions' => $profileData['preferred_regions'],
-        ]);
+        ], $user);
         
         // Optionally restore ratings
         if (isset($data['ratings'])) {

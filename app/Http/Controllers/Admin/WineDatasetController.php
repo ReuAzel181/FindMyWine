@@ -32,38 +32,101 @@ class WineDatasetController extends Controller
     /**
      * Show the import form
      */
-    public function importForm()
+    public function importForm(Request $request)
     {
-        return view('admin.dataset.import');
+        $type = $request->query('type', 'standard');
+        $title = $type === 'additional' ? 'Import Additional Wines' : 'Import Wine Dataset';
+        $description = $type === 'additional' 
+            ? 'Upload additional wines to expand the dataset. This will add wines to the existing database.'
+            : 'Upload a CSV file containing wine data. This will replace all existing wines.';
+            
+        return view('admin.dataset.import', compact('type', 'title', 'description'));
     }
     
     /**
-     * Import wines from CSV
+     * Process the import
      */
     public function importWines(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'wine_file' => 'required|file|mimes:csv,txt',
-            'clear_existing' => 'nullable|boolean',
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt',
+            'import_type' => 'required|in:standard,additional',
         ]);
         
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator);
-        }
-        
-        $file = $request->file('wine_file');
-        $path = $file->store('imports');
-        
-        $clearExisting = $request->has('clear_existing') && $request->clear_existing;
-        
         try {
-            $stats = $this->wineDatasetService->importWinesFromCSV($path, $clearExisting);
+            $file = $request->file('csv_file');
+            $path = $file->getRealPath();
+            $records = array_map('str_getcsv', file($path));
             
-            return redirect()->route('admin.dataset.index')
-                ->with('success', "Import completed: {$stats['imported']} wines imported, {$stats['skipped']} skipped, {$stats['errors']} errors");
+            // Get headers
+            $headers = array_shift($records);
+            $headers = array_map('trim', $headers);
+            $headers = array_map('strtolower', $headers);
+            
+            // Check required headers
+            $requiredHeaders = ['name', 'type', 'price'];
+            foreach ($requiredHeaders as $requiredHeader) {
+                if (!in_array($requiredHeader, $headers)) {
+                    return back()
+                        ->with('error', "CSV file is missing required header: {$requiredHeader}")
+                        ->withInput();
+                }
+            }
+            
+            // Clear existing wines if requested (only for standard import)
+            if ($request->import_type === 'standard' && $request->has('clear_existing')) {
+                Wine::truncate();
+            }
+            
+            // Process records
+            $count = 0;
+            foreach ($records as $record) {
+                if (count($record) !== count($headers)) {
+                    continue; // Skip invalid records
+                }
+                
+                $wineData = array_combine($headers, $record);
+                
+                // Skip empty rows
+                if (empty(trim($wineData['name']))) {
+                    continue;
+                }
+                
+                // Check if wine already exists for additional imports
+                if ($request->import_type === 'additional') {
+                    $existingWine = Wine::where('name', $wineData['name'])->first();
+                    if ($existingWine) {
+                        continue; // Skip existing wines in additional import mode
+                    }
+                }
+                
+                // Create new wine
+                $wine = new Wine();
+                $wine->name = trim($wineData['name']);
+                $wine->type = trim($wineData['type'] ?? '');
+                $wine->variety = trim($wineData['variety'] ?? '');
+                $wine->origin = trim($wineData['origin'] ?? '');
+                $wine->price = floatval(str_replace(['₱', ','], '', $wineData['price'] ?? 0));
+                $wine->flavor_profile = trim($wineData['flavor_profile'] ?? '');
+                $wine->food_pairings = trim($wineData['food_pairings'] ?? '');
+                $wine->description = trim($wineData['description'] ?? '');
+                $wine->image_url = trim($wineData['image_url'] ?? '');
+                $wine->source_url = trim($wineData['source_url'] ?? '');
+                
+                $wine->save();
+                $count++;
+            }
+            
+            $message = $request->import_type === 'additional' 
+                ? "{$count} additional wines imported successfully."
+                : "{$count} wines imported successfully.";
+                
+            return redirect()->route('admin.dataset.list')->with('success', $message);
+            
         } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Import failed: ' . $e->getMessage());
+            return back()
+                ->with('error', "Error importing wines: " . $e->getMessage())
+                ->withInput();
         }
     }
     
