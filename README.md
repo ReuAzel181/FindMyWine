@@ -2,7 +2,8 @@
 
 A PHP-based wine recommendation system that helps users find wines based on their preferences. Includes features for ratings, comments, exporting/importing user profiles, and admin-level dataset management.
 
-rm.png
+  <img src="https://github.com/ReuAzel181/Wine-Recommender/blob/update1/rm.png" style="width: 700px;">
+  
 
 ## Features
 
