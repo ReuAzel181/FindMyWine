@@ -26,19 +26,16 @@ A PHP-based wine recommendation system that helps users find wines based on thei
 
 ### Installation
 
-git clone https://github.com/ReuAzel181/Wine-Recommender.git
-cd Wine-Recommender
+    `git clone https://github.com/ReuAzel181/Wine-Recommender.git
+    `cd Wine-Recommender
 
 ### Install dependencies
 
-pip install -r requirements.txt
+    `pip install -r requirements.txt
 
 ### Run the Application
 
-PHP wine_recommender.py
-
-# If using a web interface, follow the relevant command:
-php artisan serve
+    `php artisan serve
 
 ## Project Structure
 
@@ -69,10 +66,6 @@ Admins can:
 ## Contributing
 
 Pull requests are welcome. Fork the repository, create a feature branch, and submit a pull request.
-
-## License
-
-MIT License
 
 ## Author: ReuAzel181
 
