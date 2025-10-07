@@ -35,9 +35,17 @@ export default function MultiSelect({
 
   const clearAll = () => onChange?.([]);
 
+  const addPopular = (n = 3) => {
+    const picks = (popular || []).slice(0, n);
+    const next = Array.from(new Set([...(selected || []), ...picks]));
+    onChange?.(next);
+  };
+
   const summaryText = selected.length
     ? `${selected.slice(0, 3).join(', ')}${selected.length > 3 ? '…' : ''}`
-    : 'None';
+    : (popular && popular.length
+        ? `Popular: ${popular.slice(0, 3).join(', ')}`
+        : 'None');
 
   return (
     <div className="multiselect" ref={ref}>
@@ -49,6 +57,20 @@ export default function MultiSelect({
         <span className="text-muted small ms-summary">{summaryText}</span>
         <i className={`fas fa-chevron-${open ? 'up' : 'down'} ms-2 text-muted`}></i>
       </button>
+      {/* Quick picks: show top popular as clickable chips when nothing selected */}
+      {(!selected || selected.length === 0) && popular?.length > 0 && (
+        <div className="ms-quick mt-2">
+          <span className="text-muted small">Quick picks:</span>
+          {popular.slice(0, 3).map((p) => (
+            <button type="button" key={`qp-${p}`} className="chip" onClick={() => toggleItem(p)}>{p}</button>
+          ))}
+          {popular.length > 3 && (
+            <button type="button" className="btn btn-link btn-sm p-0 ms-1" onClick={() => setOpen(true)}>See more</button>
+          )}
+          <div className="ms-auto"></div>
+          <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => addPopular(3)}>Add All</button>
+        </div>
+      )}
       {selected.length > 0 && (
         <div className="ms-selected mt-2">
           {selected.map((s) => (

@@ -1,8 +1,11 @@
 import Link from 'next/link';
 import { useState } from 'react';
+import { useRouter } from 'next/router';
 
 export default function Header() {
   const [term, setTerm] = useState('');
+  const router = useRouter();
+  const path = router.pathname;
 
   function onSearch(e) {
     e.preventDefault();
@@ -15,8 +18,8 @@ export default function Header() {
   }
 
   return (
-    <header className="site-header shadow-sm sticky-top">
-      <div className="container d-flex align-items-center justify-content-between py-2">
+    <header className="site-header header-expanded sticky-top">
+      <div className="container-fluid d-flex align-items-center justify-content-between py-3 flex-wrap gap-3">
         <div className="d-flex align-items-center">
           <Link href="/" className="brand text-decoration-none">
             <i className="fas fa-wine-bottle me-2 text-brand"></i>
@@ -24,35 +27,25 @@ export default function Header() {
             <span className="brand-text">Recommender</span>
           </Link>
         </div>
-        <nav className="d-none d-md-flex align-items-center gap-2">
-          <Link href="/" className="nav-link chip">Home</Link>
-          <Link href="/wines" className="nav-link chip">Browse Wines</Link>
-          <Link href="/recommend" className="nav-link chip">Recommendations</Link>
-        </nav>
-        <form className="searchbar d-none d-md-flex" onSubmit={onSearch}>
+        <div className="flex-grow-1 d-flex justify-content-center">
+          <nav className="header-nav d-flex align-items-center gap-2">
+            <Link href="/" className={`nav-link ${path === '/' ? 'active' : ''}`}>Home</Link>
+            <Link href="/find" className={`nav-link ${path === '/find' ? 'active' : ''}`}>Find Wine</Link>
+            <Link href="/wines" className={`nav-link ${path === '/wines' ? 'active' : ''}`}>Browse Wines</Link>
+            <Link href="/recommend" className={`nav-link ${path === '/recommend' ? 'active' : ''}`}>Recommendations</Link>
+          </nav>
+        </div>
+        <form className="searchbar d-flex ms-auto" onSubmit={onSearch}>
           <input
-            className="form-control form-control-sm"
+            className="form-control"
             placeholder="Search flavors, e.g., fruity, oaky"
             value={term}
             onChange={(e) => setTerm(e.target.value)}
           />
-          <button className="btn btn-sm btn-brand ms-2" type="submit">
+          <button className="btn btn-brand ms-2" type="submit">
             <i className="fas fa-search me-1"></i>Search
           </button>
         </form>
-      </div>
-      <div className="header-subnav">
-        <div className="container d-flex flex-wrap gap-2 py-2">
-          <Link href="/recommend?types=Red&limit=6" className="nav-link chip">Red</Link>
-          <Link href="/recommend?types=White&limit=6" className="nav-link chip">White</Link>
-          <Link href="/recommend?types=Sparkling&limit=6" className="nav-link chip">Sparkling</Link>
-          <Link href="/recommend?types=Rosé&limit=6" className="nav-link chip">Rosé</Link>
-          <Link href="/recommend?types=Dessert&limit=6" className="nav-link chip">Dessert</Link>
-          <Link href="/recommend?flavors=fruity&limit=6" className="nav-link chip">Fruity</Link>
-          <Link href="/recommend?flavors=oaky&limit=6" className="nav-link chip">Oaky</Link>
-          <Link href="/recommend?foods=steak&limit=6" className="nav-link chip">Steak</Link>
-          <Link href="/recommend?foods=fish&limit=6" className="nav-link chip">Fish</Link>
-        </div>
       </div>
     </header>
   );

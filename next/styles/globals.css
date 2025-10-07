@@ -26,7 +26,7 @@ body { font-family: Georgia, 'Times New Roman', serif; }
 .nav-link:hover { color: var(--brand-primary); opacity: 1; }
 .nav-link.active { color: var(--brand-primary); opacity: 1; }
 
-.btn-brand { background: var(--brand-primary); color: #fff; border-color: var(--brand-primary-600); }
+.btn-brand { background: var(--brand-primary); color: #fff; border-color: var(--brand-primary-600); padding: 12px 24px; border-radius: 999px; }
 .btn-brand:hover { background: var(--brand-primary-700); color: #fff; }
 
 .site-main { min-height: 60vh; }
@@ -47,6 +47,14 @@ body { font-family: Georgia, 'Times New Roman', serif; }
 .badge.bg-warning.text-dark { background-color: var(--brand-accent) !important; color: #111 !important; }
 
 .site-footer { border-top: 1px solid var(--border); background: var(--bg-card); }
+.footer-title { font-weight: 600; letter-spacing: 0.02em; font-size: 0.95rem; color: var(--text-dark); text-transform: uppercase; }
+.footer-link { color: var(--text-dark); opacity: 0.8; text-decoration: none; }
+.footer-link:hover { color: var(--brand-primary); opacity: 1; }
+.social-icon { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; background: var(--brand-accent); color: #111; }
+.social-icon:hover { filter: brightness(0.95); }
+.footer-input { background: #f7f7f7; border: 1px solid var(--border); }
+.footer-submit { background: var(--brand-accent); color: #111; font-weight: 600; }
+.footer-bottom { background: #111; color: #fff; }
 
 hr { border-color: var(--border); }
 
@@ -54,6 +62,8 @@ hr { border-color: var(--border); }
 .home-viewport {
   min-height: calc(100vh - 140px);
   overflow: auto;
+  padding-top: 1rem;
+  padding-bottom: 2rem;
 }
 @media (max-width: 992px) {
   .home-viewport { min-height: auto; }
@@ -61,7 +71,7 @@ hr { border-color: var(--border); }
 
 /* Comfortable card spacing */
 .site-card .card-header { padding: 0.75rem 1rem; }
-.site-card .card-body { padding: 1rem; }
+.site-card .card-body { padding: 1.25rem; }
 
 /* Rated sidebar visuals */
 .rated-sidebar .card-header { padding-bottom: 0.5rem; }
@@ -104,12 +114,25 @@ hr { border-color: var(--border); }
 .ms-list { max-height: 220px; overflow-y: auto; }
 .ms-item { display: flex; align-items: center; padding: 6px 4px; }
 .ms-selected { display: flex; flex-wrap: wrap; }
+.ms-quick { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ms-quick .chip { padding: 4px 10px; }
+.ms-quick .btn-link { color: var(--brand-primary); }
+.ms-quick .btn-link:hover { text-decoration: underline; }
+.ms-control:hover { border-color: var(--brand-primary); }
 
 /* Rated wines list polish */
 .rated-item { padding: 0.5rem; border-radius: 10px; }
 .rated-item:hover { background: #faf7f5; }
 .rated-thumb { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
 .rating-stars i { margin-right: 2px; }
+
+/* Selection summary area to utilize lower space */
+.selection-summary {
+  border: 1px dashed #ead9cf;
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: #fff;
+}
 
 /* Chips/buttons for filters */
 .chip {
@@ -135,12 +158,13 @@ hr { border-color: var(--border); }
   border-top-right-radius: 12px;
 }
 
-/* Header secondary nav */
-.header-subnav {
-  border-top: 1px solid var(--border);
-  background: #fff;
-}
-.header-subnav .nav-link { font-size: 0.95rem; }
+/* Header expanded: centered nav, no stroke, active state */
+.header-expanded { background: #fff; }
+.header-expanded .brand { font-family: 'Playfair Display', serif; font-size: 1.25rem; }
+.header-expanded .header-nav .nav-link { padding: 8px 12px; border: none; color: var(--text-dark); text-decoration: none; border-radius: 999px; }
+.header-expanded .header-nav .nav-link:hover { background: #f7f7f7; }
+.header-expanded .header-nav .nav-link.active { color: var(--brand-primary); font-weight: 600; background: transparent; }
+.header-expanded .searchbar { width: min(520px, 100%); }
 
 /* Chip group UX */
 .chip-group .group-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
@@ -152,3 +176,15 @@ hr { border-color: var(--border); }
 .chip-scroll::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
 .show-toggle { color: var(--brand-primary); cursor: pointer; font-size: 0.85rem; }
 .mini-count { display: inline-flex; align-items: center; gap: 6px; background: #f7f7f7; border: 1px solid var(--border); padding: 6px 10px; border-radius: 999px; }
+
+/* Subtle animations and interaction polish */
+.fade-in { opacity: 0; animation: fadeIn .6s ease forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+.hover-lift { transition: transform .2s ease, box-shadow .2s ease; }
+.hover-lift:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,0.12); }
+
+/* Expanded section copy */
+.section-subtitle { margin-top: .25rem; margin-bottom: 1rem; color: var(--text-muted); }
+
+/* Stat tiles for count-up numbers */
+.stat-tile { line-height: 1; padding: .25rem .5rem; display: inline-block; background: #fff; border: 1px solid var(--border); border-radius: 8px; }
